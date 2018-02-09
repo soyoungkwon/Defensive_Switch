@@ -12,15 +12,13 @@ upKey     = KbName('UpArrow');
 downKey   = KbName('DownArrow');
 buttonR   = [];
 
-tic
-% try
-Screen('Preference', 'SkipSyncTests', 1);
 % open the screen
+Screen('Preference', 'SkipSyncTests', 1);
 waitframes = 1;     % Show new dot-images at each waitframes'th monitor refresh.
 screens = Screen('Screens');
 screenNumber = 0;%max(screens);
 % [w, rect] = Screen('OpenWindow', screenNumber, 0);
-[w, rect] = Screen('OpenWindow', screenNumber, 1);
+[w, rect] = Screen('OpenWindow', screenNumber, 1); % in the iMac?
 
 %====== TIME ==========%
 % calculate refresh rate & smooth dots
@@ -30,11 +28,11 @@ fps = Screen('FrameRate',w);      % frames per second
 ifi = Screen('GetFlipInterval', w);
 fps = 1/ifi;
 rfr = round(fps);
-moveRate = rfr*2;%0.4;
+moveRate = rfr*0.4;%*2;%0.4;
 nframes = rfr*50; % number of animation frames in loop
 
 % mode timing
-switchT = [5 4 5.5 4.5 4 6 7 4 5 6 5]*2;
+switchT = [5 4 5.5 4.5 4 6 7 4 5 6 5];
 switchframe = [round(fps*switchT)];
 minRT = 0.2;
 %     modeT = [1 0; 2 5; 1 10; 2 15];
@@ -53,8 +51,7 @@ s2 = 50;
 % lines & box positions (in pixels)
 % :xPositions (n-1, n-1), yPositions (120,240,360,480,600,720,840,960)
 numDemoLines=8; % how many lines in the matrix
-lineWidths{1}=6;
-lineWidths{2}=10;
+lineWidths{1}=6; lineWidths{2}=10;
 xPositions=round(linspace(0, wWidth, numDemoLines+2));
 xPositions=xPositions(2:end-1);
 yPositions=round(linspace(0, wHeight, numDemoLines+2));
@@ -66,25 +63,27 @@ xGap = round(mean(diff(xPositions)));
 yGap = round(mean(diff(yPositions)));
 xMove = xGap; yMove = yGap;
 
-% WALL positions: IJ(1-n2), could be deleted
-i_caught = []; xymatrixall = [];
+% % WALL positions: IJ(1-n2), could be deleted
+% i_caught = []; xymatrixall = [];
 moveX = []; moveY = []; walls = []; resp = []; distArray = [];
 moveXYarray = []; %dist4ok = [];
-wI = randperm(numDemoLines-1);
-wJ = randperm(numDemoLines-1);
-ind=sub2ind([numDemoLines-1,numDemoLines-1],wI,wJ); dotMatrix = [];
-IJ=[1:(numDemoLines-1)*(numDemoLines-1)]; % all index
+dotMatrix = [];
+% wI = randperm(numDemoLines-1);
+% wJ = randperm(numDemoLines-1);
+% ind=sub2ind([numDemoLines-1,numDemoLines-1],wI,wJ); 
 
-% dot positions (not wall position)
-DotNoWall = IJ(~ismember(IJ,ind));
+% DOT positions (not wall position)
+% DotNoWall = IJ(~ismember(IJ,ind));
+IJ=[1:(numDemoLines-1)*(numDemoLines-1)]; % all index
+DotAll = IJ;
 % initial random position of the prey & predator
-[xDot,yDot] = ind2sub([numDemoLines-1,numDemoLines-1],DotNoWall);%randperm(numDemoLines-1);%-numDemoLines/2;
+[xDot,yDot] = ind2sub([numDemoLines-1,numDemoLines-1],DotAll);%DotNoWall);%
 xR = xDot(1); yR = yDot(1);
 stepGap = (numDemoLines)/2;
 
 % initial position
 % xy14 = [xGap*xR-xGap*stepGap yGap*yR-yGap*stepGap];
-xy14 = [xR-stepGap yR-stepGap];
+xy14 = [xDot(1)-stepGap yDot(1)-stepGap];% xR, yR
 xy24 = [0 0];% dot positions in Cartesian coordinates (pixels from center)
 
 %---- color code for dots/boxes/lines
@@ -93,30 +92,29 @@ myColors{2}=[255 0 0]; % r
 myColors{3}=[0 255 0]; % g
 myColors{4}=[0 0 255]; % b
 myColors{5}=[50 50 50];
-%     white = WhiteIndex(w);
-%     colvect=[255 0 0];%white;
 
 
 % attack or escape?
 AEmode = 1; % attack escape mode (Attack:1, Escape:-1)
-m = 5; % ?
+m = 10; % ?
 % --------------
 % animation loop
 % --------------
+tic
 sw=1; % switch steps
 for i = 1:nframes
     telapsed=toc;
     if (i>1)
-        % attack & escape mode
+        % decide mode (attack or escape)
         if mod(i,switchframe(sw))==1
            AEmode = -AEmode;
            sw=sw+1;
-           xy14 = [0 0]; xy24 = [3 3];
-%            dxdy14 = [3 3];
+           xy14 = [xDot(1)-stepGap yDot(1)-stepGap]; %[0 0] % center is [0 0], 
+           xy24 = [xDot(1) yDot(1)];%[3 3];
         end
-        Screen('LineStipple',w, 0);
+        Screen('LineStipple', w, 0);
         
-        % more lines
+        % lines inside the boarder
         for ll=2:numDemoLines-1
             Screen('DrawLine', w, myColors{5}, xPositions(ll), yPositions(1),  xPositions(ll), yPositions(numDemoLines), lineWidths{2});
             Screen('DrawLine', w, myColors{5}, xPositions(1), yPositions(ll),  xPositions(numDemoLines), yPositions(ll), lineWidths{2});
@@ -143,10 +141,6 @@ for i = 1:nframes
                 Screen('DrawText', w, 'Attack',  xPositions(round(numDemoLines/2)), 30, [255, 150, 150, 155]);
             end
         end
-%         % === walls =====%
-%         for jj=1:numDemoLines-1
-%             Screen('FillRect', w, myColors{1}, [xPositions(wI(jj)), yPositions(wJ(jj)), xPositions(wI(jj)+1), yPositions(wJ(jj)+1)]);  % draw fixation dot (flip erases it)
-%         end
         
         %% ===== Draw nice dots =====%
         % zero coordinate (0,0) --> center
@@ -173,9 +167,7 @@ for i = 1:nframes
         dist4ok = [];
         move4opts = [2*(randperm(2)-1.5) zeros(1,2)];%(randperm(3)-2);
         
-        % check all 4 possible move and check its distance & absolute
-        % position
-        % every 1second!
+        % check all 4 possible move and check its distance & absolute position every 1second!
         rand4 = randperm(4);
         moveLCRX = move4opts(rand4);
         d = 1;
@@ -199,14 +191,16 @@ for i = 1:nframes
 %                 xy14C = xy14 + dxdy14C;
                 %=== restrain movement (boarder not possible to move)
                 % after move (NOT WORKING)
-                if (xy14(1)+xPredator) > numDemoLines/2, xPredator = -1;
-                elseif (xy14(2)+xPredator) < -numDemoLines/2, xPredator = 1; end
+%                 if (xy14(1)+xPredator) > numDemoLines/2, xPredator = -1;
+%                 elseif (xy14(2)+yPredator) < -numDemoLines/2, xPredator = 1; end
+                  if xy14(1) > numDemoLines/2, xy14(1) = numDemoLines/2;
+                      xy14(2) > numDemoLines/2, xy14(2) = numDemoLines/2;
+                  end
      
 %                 if abs(xy14C(1))<numDemoLines/2 & abs(xy14C(2))<numDemoLines/2
                     dxdy14 = [xPredator yPredator];
                     xy14C = xy14 + dxdy14;
                     dxdy24 = [0 0];
-%                     xy14 = xy14 + dxdy14;
                     xy24C = xy24 + dxdy24;
 %                 end
             elseif AEmode == -1,
@@ -246,7 +240,7 @@ for i = 1:nframes
                     moveXYarray = [moveXYarray; xPredatorR yPredatorR];
                     dotMatrix = [dotMatrix; xy14 xy24];%
                 end
-                d = d+1;
+                d = d + 1;
             end
             
 
@@ -334,10 +328,3 @@ end;
 Priority(0);
 ShowCursor;
 sca;
-5
-% catch
-%     Priority(0);
-%     ShowCursor;
-%     sca;
-%     6
-% end
