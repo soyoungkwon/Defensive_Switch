@@ -15,5 +15,5 @@ bar(((dotMatrix(:,3)-dotMatrix(:,5)==0)&(dotMatrix(:,4)-dotMatrix(:,6)==0)).*dot
 figure; bar([mean(dotMatrix(dotMatrix(:,1)==1,end)) mean(dotMatrix(dotMatrix(:,1)==-1,end))])
 
 % escaped/attack
-sum(dotMatrix(dotMatrix(:,1)==1,end))
-sum(dotMatrix(dotMatrix(:,1)==-1,end))
+sum(dotMatrix(dotMatrix(:,1)==1,end)) % attack
+sum(dotMatrix(dotMatrix(:,1)==-1,end)) % escape

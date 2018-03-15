@@ -42,7 +42,7 @@ rfr = round(fps);
 % moveRate = rfr*0.2;%*2;%0.4;
 
 % mode timing
-switchT = repmat([5 6 7.5 6.5 8 9 7 8 7 9 7.5]+20, [1 4]);
+switchT = repmat([5 6 7.5 6.5 8 9 7 8 7 9 7.5], [1 4]);
 switchTime = cumsum(switchT);
 switchframe = [round(fps*switchTime)];
 minRT = 0.2;
@@ -117,8 +117,8 @@ angles{4}=([0.2 -0.2 -1] * 2+1.5)*pi;
 AEmode = 1; % attack escape mode (Attack:1, Escape:-1)
 m = 1; % ?
 p = 0; % press
-speedE = 0.25;
-speedA = 0.1;
+speedE = 0.2;
+speedA = 0.2;
 % --------------
 % animation loop
 % --------------
@@ -381,5 +381,5 @@ Priority(0);
 ShowCursor;
 sca;
 if saveOn
-   save([sprintf('testEscape%0.2dAttack%0.2dtrial27', speedE*10, speedA*10)], 'dotMatrix', 'allFrames');
+   save([sprintf('testEscape%0.2dAttack%0.2d', speedE*10, speedA*10)], 'dotMatrix', 'allFrames');
 end
